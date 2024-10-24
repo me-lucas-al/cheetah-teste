@@ -1,0 +1,213 @@
+CHEETAH-TESTE
+
+- controller/UserController.java:
+
+	package bra.ifsp.edu.br.cheetah.controller;
+
+	import bra.ifsp.edu.br.cheetah.model.User;
+	import bra.ifsp.edu.br.cheetah.service.UserService;
+	import org.springframework.beans.factory.annotation.Autowired;
+	import org.springframework.http.ResponseEntity;
+	import org.springframework.web.bind.annotation.*;
+
+	import java.util.List;
+	import java.util.Optional;
+
+	@RestController
+	@RequestMapping("/api/users") // Rota base
+	public class UserController {
+
+    		@Autowired
+    		private UserService userService;
+
+    		// Endpoint para obter todos os usuários
+    		@GetMapping
+    		public List<User> getAllUsers() {
+        		return userService.findAll();
+    		}
+
+    		// Endpoint para criar um novo usuário
+    		@PostMapping
+    		public User createUser(@RequestBody User user) {
+        		return userService.save(user);
+    		}
+
+    		// Endpoint para obter um usuário por ID
+    		@GetMapping("/{id}")
+    		public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        		Optional<User> user = userService.findById(id);
+        		return user.map(ResponseEntity::ok) // Retorna 200 OK se o usuário existir
+                   .orElse(ResponseEntity.notFound().build()); // Retorna 404 Not Found se não existir
+    		}
+
+    		// Endpoint para deletar um usuário
+    		@DeleteMapping("/{id}")
+    		public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        		userService.delete(id);
+        		return ResponseEntity.noContent().build(); // Retorna 204 No Content após a exclusão
+    		}
+	}
+
+
+- model/User.java:
+
+	package bra.ifsp.edu.br.cheetah.model;
+
+	import jakarta.persistence.Entity;
+	import jakarta.persistence.GeneratedValue;
+	import jakarta.persistence.GenerationType;
+	import jakarta.persistence.Id;
+	import jakarta.persistence.Column;
+
+
+	@Entity
+	public class User {
+
+    		@Id
+    		@GeneratedValue(strategy = GenerationType.IDENTITY)
+    		private Long id;
+
+    		private String name;
+
+    		@Column(unique = true)
+    		private String email;
+
+    		public Long getId() {
+        		return id;
+    		}
+
+    		public void setId(Long id) {
+        		this.id = id;
+    		}
+
+    		public String getName() {
+        		return name;
+    		}
+
+    		public void setName(String name) {
+        		this.name = name;
+    		}
+
+    		public String getEmail() {
+        		return email;
+    		}
+
+    		public void setEmail(String email) {
+        		this.email = email;
+    		}
+	}
+
+
+- repository/UserRepository.java:
+
+	package bra.ifsp.edu.br.cheetah.repository;
+
+	import bra.ifsp.edu.br.cheetah.model.User;
+	import org.springframework.data.jpa.repository.JpaRepository;
+
+	public interface UserRepository extends JpaRepository<User, Long> {
+    		// Você pode adicionar métodos personalizados aqui, se necessário
+	}
+
+
+- service/UserService.java:
+
+	package bra.ifsp.edu.br.cheetah.service;
+
+	import bra.ifsp.edu.br.cheetah.model.User;
+	import bra.ifsp.edu.br.cheetah.repository.UserRepository;
+	import org.springframework.beans.factory.annotation.Autowired;
+	import org.springframework.stereotype.Service;
+
+	import java.util.List;
+	import java.util.Optional;
+
+	@Service
+	public class UserService {
+
+    		@Autowired
+    		private UserRepository userRepository;
+
+    		// Método para obter todos os usuários
+    		public List<User> findAll() {
+        		return userRepository.findAll();
+    		}
+
+    		// Método para salvar um novo usuário
+    		public User save(User user) {
+        		return userRepository.save(user);
+    		}
+
+    		// Método para buscar um usuário por ID
+    		public Optional<User> findById(Long id) {
+        		return userRepository.findById(id);
+    		}
+
+    		// Método para deletar um usuário
+    		public void delete(Long id) {
+        		userRepository.deleteById(id);
+    		}
+	}
+
+
+- CheetahApplication.java:
+
+	package bra.ifsp.edu.br.cheetah;
+
+	import org.springframework.boot.SpringApplication;
+	import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+	@SpringBootApplication
+	public class CheetahApplication {
+
+		public static void main(String[] args) {
+			SpringApplication.run(CheetahApplication.class, args);
+		}
+
+	}
+
+- resources/application.properties:
+	
+	# Altera a estrutura da tabela caso a entidade tenha mudanças.
+	spring.jpa.hibernate.ddl-auto=update
+
+	# Acesso ao banco de dados
+	spring.datasource.url=jdbc:mysql://${MYSQL_HOST:localhost}:3306/bdd
+
+	# Usuário do banco de dados
+	spring.datasource.username=root
+
+	# Senha do banco de dados
+	spring.datasource.password=lucas
+
+
+- resources/bdd.sql:
+
+	USE bdd;
+
+	DROP TABLE IF EXISTS User;
+
+	CREATE TABLE User (
+    		id INT AUTO_INCREMENT PRIMARY KEY,
+    		nome VARCHAR(50) NOT NULL,
+    		email VARCHAR(80) NOT NULL UNIQUE,
+    		senha varchar(25) NOT NULL 
+	);
+
+
+
+- CheetahApplicationTests.java:
+
+	package bra.ifsp.edu.br.cheetah;
+
+	import org.junit.jupiter.api.Test;
+	import org.springframework.boot.test.context.SpringBootTest;
+
+	@SpringBootTest
+	class CheetahApplicationTests {
+
+		@Test
+		void contextLoads() {
+		}
+
+	}

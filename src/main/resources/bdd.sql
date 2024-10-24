@@ -1,0 +1,10 @@
+USE bdd;
+
+DROP TABLE IF EXISTS User;
+
+CREATE TABLE User (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL,
+    email VARCHAR(80) NOT NULL UNIQUE,
+    senha varchar(25) NOT NULL 
+);
